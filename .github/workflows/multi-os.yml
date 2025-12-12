@@ -1,26 +1,21 @@
 name: Tests Multi-OS
 
-# Este workflow demuestra cómo ejecutar tests en múltiples sistemas operativos
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  # Job con matrix strategy para ejecutar en múltiples SO y versiones de Node
   test-matrix:
     name: Test en ${{ matrix.os }} con Node ${{ matrix.node-version }}
     runs-on: ${{ matrix.os }}
-    
+
     strategy:
-      # No detener todos los jobs si uno falla
       fail-fast: false
       matrix:
-        # Matriz de sistemas operativos
         os: [ubuntu-latest, windows-latest, macos-latest]
-        # Matriz de versiones de Node.js
         node-version: [16, 18, 20]
-    
+
     steps:
       - name: 📥 Checkout del código
         uses: actions/checkout@v3
@@ -35,30 +30,61 @@ jobs:
       
       - name: 🧪 Ejecutar tests
         run: npm test
-      
-      # Información específica del SO (comandos diferentes según el OS)
-      - name: 💻 Información del Sistema Operativo
+
+
+      #############################################
+      #       INFORMACIÓN POR SISTEMA OPERATIVO   #
+      #############################################
+
+      # --- LINUX ---
+      - name: 💻 Información Linux
+        if: runner.os == 'Linux'
         shell: bash
         run: |
           echo "===================================="
           echo "Sistema: ${{ matrix.os }}"
           echo "Node.js: ${{ matrix.node-version }}"
-          echo "Runner OS: $RUNNER_OS"
+          echo "Runner OS: Linux"
           echo "===================================="
-          if [ "$RUNNER_OS" == "Linux" ]; then
-            echo "Ejecutando en Linux"
-            uname -a
-            cat /etc/os-release
-          elif [ "$RUNNER_OS" == "Windows" ]; then
-            echo "Ejecutando en Windows"
-            systeminfo | findstr /C:"OS"
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-            echo "Ejecutando en macOS"
-            sw_vers
-          fi
+          echo "Ejecutando en Linux"
+          uname -a
+          echo "---"
+          cat /etc/os-release
           echo "===================================="
 
-  # Job que solo se ejecuta en Linux para comparar
+      # --- WINDOWS ---
+      - name: 💻 Información Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Host "===================================="
+          Write-Host "Sistema: ${{ matrix.os }}"
+          Write-Host "Node.js: ${{ matrix.node-version }}"
+          Write-Host "Runner OS: Windows"
+          Write-Host "===================================="
+          Write-Host "Ejecutando en Windows"
+          systeminfo | Select-String "OS"
+          Write-Host "===================================="
+
+      # --- MACOS ---
+      - name: 💻 Información macOS
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          echo "===================================="
+          echo "Sistema: ${{ matrix.os }}"
+          echo "Node.js: ${{ matrix.node-version }}"
+          echo "Runner OS: macOS"
+          echo "===================================="
+          echo "Ejecutando en macOS"
+          sw_vers
+          echo "===================================="
+
+
+  #############################################
+  #        JOB ESPECÍFICO DE LINUX            #
+  #############################################
+
   linux-specific:
     name: 🐧 Operaciones específicas de Linux
     runs-on: ubuntu-latest
@@ -86,7 +112,11 @@ jobs:
           echo "Procesos del sistema:"
           ps aux | head -n 10
 
-  # Job que solo se ejecuta en Windows
+
+  #############################################
+  #         JOB ESPECÍFICO DE WINDOWS         #
+  #############################################
+
   windows-specific:
     name: 🪟 Operaciones específicas de Windows
     runs-on: windows-latest
@@ -107,12 +137,16 @@ jobs:
           Get-Process | Select-Object -First 10 Name, CPU, Id
           Write-Host "===================================="
 
-  # Job que resume los resultados
+
+  #############################################
+  #              RESUMEN FINAL                #
+  #############################################
+
   summary:
     name: 📊 Resumen de Ejecución
     needs: [test-matrix, linux-specific, windows-specific]
     runs-on: ubuntu-latest
-    if: always()  # Se ejecuta incluso si algún job falla
+    if: always()
     
     steps:
       - name: 📊 Generar resumen
@@ -120,12 +154,12 @@ jobs:
           echo "===================================="
           echo "RESUMEN DE EJECUCIÓN MULTI-OS"
           echo "===================================="
-          echo "✅ Todos los jobs completados"
-          echo "Los tests se ejecutaron en:"
+          echo "✅ Todos los jobs completados (incluso si falló alguno)"
+          echo "Tests ejecutados en:"
           echo "  - Ubuntu (Linux)"
           echo "  - Windows"
           echo "  - macOS"
           echo "Con Node.js versiones: 16, 18, 20"
           echo "===================================="
-          echo "Total de combinaciones: 9 (3 OS x 3 versiones)"
+          echo "Total de combinaciones ejecutadas: 9"
           echo "===================================="
