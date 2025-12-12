@@ -15,7 +15,16 @@ function division(a, b) {
         throw new Error("No se puede dividir por cero");
     }
     return a / b;
+
+//nueva funcion agregada
+
 }
+
+function countVowels(text) {
+  return (text.match(/[aeiou]/gi) || []).length;
+}
+
+module.exports = { countVowels };
 
 console.log("🚀 Aplicación iniciada");
 console.log("➕ Suma(5, 3):", suma(5, 3));

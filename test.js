@@ -129,4 +129,17 @@ function test() {
     }
 }
 
+//Test agregado de prueba
+
+const { countVowels } = require("./index");
+
+test("Cuenta vocales correctamente", () => {
+  expect(countVowels("elsi")).toBe(2);
+});
+
+test("Devuelve 0 si no hay vocales", () => {
+  expect(countVowels("rhythm")).toBe(0);
+});
+
+
 test();
